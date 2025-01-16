@@ -26,7 +26,7 @@ sudo apt install git
 
 ![image](./branch示意圖.jpg)
 圖片來源: [【Git】分支的基本操作與概念](https://medium.com/@kenken880929/git-branch-basic-6f10f826434d)
-如上面的示意圖，主分支(main)是最重要的，但開發功能時不建議在主分支上，在些新功能時可以開心的branch，如上圖的A、B、C branch，分支可以中途開，寫完功能後再merge回主分支。
+如上面的示意圖，主分支(main)是最重要的，但開發功能時不建議在主分支上，在些新功能時可以開新的branch，如上圖的A、B、C branch，分支可以中途開，寫完功能後再merge回主分支。
 好處是可以減少與其他人一起撰寫時可能互相影響的發生。
 
 ### 確認現在處於哪個branch
@@ -148,6 +148,113 @@ git status
 ![image](./pull_demo_衝突解決上傳.png)
 可以看到github上的版本已經是你的版本了
 ![image](./衝突解決後.png)
+
+## 版本控制
+
+### 查看歷史
+
+```sh
+# 查看詳細提交歷史
+git log
+# 簡單顯示提交歷史
+git log --oneline
+```
+
+詳細歷史:
+![image](./查看提交歷史_詳細.png)
+簡單顯示歷史
+![image](./查看提交歷史_簡單.png)
+
+### 回滾版本
+
+#### reset
+
+> 使用前請想好，reset不保留git記錄的歷史。
+
+```sh
+# 指定commit-hash(也就是絕對的概念)
+git reset --soft <commit-hash>
+# 退回指定版本的前n個版本(相對的概念)
+git reset --soft <commit-hash>~n
+# 退回現在的前n個版本(相對的概念)
+git reset --soft HEAD~n
+```
+
+只退回commit，電腦程式碼與暫存區不會受到影響。
+
+```sh
+# 指定commit-hash(也就是絕對的概念)
+git reset --hard <commit-hash>
+# 退回指定版本的前n個版本(相對的概念)
+git reset --mixed <commit-hash>~n
+# 退回現在的前n個版本(相對的概念)
+git reset --mixed HEAD~n
+```
+
+**--mixed** 是預設的，退回commit以及暫存區，電腦程式碼不受影響。
+
+```sh
+# 指定commit-hash(也就是絕對的概念)
+git reset --hard <commit-hash>
+# 退回指定版本的前n個版本(相對的概念)
+git reset --hard <commit-hash>~n
+# 退回現在的前n個版本(相對的概念)
+git reset --hard HEAD~n
+```
+
+**--hard** 使用前請想清楚，會退回所有的commit、暫存區以及電腦裡的程式碼。
+
+#### revert
+
+> revert的本質是還原commit
+
+```sh
+git revert <commit-hash>
+git revert <commit-hash>~n
+git revert HEAD~n
+# 一次撤銷多個版本
+git revert <oldest-commit-hash>..<newest-commit-hash>
+# "-n"代表不要"自動"將revert的commit提交出去
+git revert -n <commit-hash>
+# --no-edit代表跳過提交訊息的編輯過程，直接使用默認的撤銷訊息(後面demo解釋)
+git revert --no-edit <commit-hash>
+```
+
+revert真正做的事情是創一個新的commit去撤銷(還原)一個過去版本的commit，以達到回滾版本的效果。
+revert與reset最大的不同是revert不會刪除commit history，在git的紀錄裡相對完整，適用於多人合作中使用。
+
+#### 回滾版本範例
+
+假設原本已經新增一個demo.py到git中
+![image](./回滾範例_上傳檔案.png)
+我不想要demo.py了，我可以用git log --oneline查看
+![image](./回滾範例_看commit-hash.png)
+不要1bda015這個commit，所以刪除他
+這裡用revert作範例:
+![image](./回滾範例_revert.png)
+打完指令會跳到編輯器(我的電腦自動打開vim了)
+黃色箭頭那裡可以寫commit的字
+![image](./回滾範例_revert的編輯.png)
+在github中可以看到紀錄
+![image](./回滾範例_history_revert前.png)
+revert後記得push上去
+![image](./回滾範例_revert後push.png)
+再看到github中，提交歷史都在，還多了一個
+![image](./回滾範例_history_revert後.png)
+但是要退回的demo.py確實不見了
+![image](./回滾範例_revert後檔案不見.png)
+再來可以嘗試reset
+這裡用退回最多的reset --hard
+要退回到新增demo.py之前
+版本是d3e3188，所以
+![image](./回滾範例_reset指令.png)
+一樣要push上去，否則只有自己這邊會改動
+因為reset算是破壞性的操作，會產生衝突，
+所以只能強制傳上去
+![image](./回滾範例_reset_後_push.png)
+可以發現到github裡的紀錄變回
+![image](./回滾範例_reset後history.png)
+之前的commit紀錄都會消失，同時也可以發現自己的電腦裡的demo.py也被刪除了，所以慎用reset。
 
 ## 補充
 
